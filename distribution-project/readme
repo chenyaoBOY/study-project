@@ -1,0 +1,13 @@
+
+1.mq研究
+    activemq-api
+    rocketmq-api
+2.quartz定时任务
+    2.1默认情况下：定时任务还没有完成 下次任务时间已到，并行执行
+    2.2分布式情况下，修改quartz.properties的文件属性，创建数据库表
+        可以先启动定时任务
+        再添加定时任务
+        多个组的定时任务在多个进程或者机器上是分布式执行的
+
+3.zookeeper
+    3.1一般不用zookeeper的API，使用zkClient封装的jar包

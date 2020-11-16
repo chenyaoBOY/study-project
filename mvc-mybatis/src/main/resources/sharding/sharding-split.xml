@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:sharding="http://shardingsphere.apache.org/schema/shardingsphere/sharding"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://shardingsphere.apache.org/schema/shardingsphere/sharding
+                        http://shardingsphere.apache.org/schema/shardingsphere/sharding/sharding.xsd
+                        http://www.springframework.org/schema/context
+                        http://www.springframework.org/schema/context/spring-context.xsd
+                        http://www.springframework.org/schema/tx
+                        http://www.springframework.org/schema/tx/spring-tx.xsd">
+    <context:annotation-config/>
+    <tx:annotation-driven/>
+    <!-- 加载配置文件 -->
+    <context:property-placeholder location="classpath:sharding/db.properties"/>
+    <!-- 数据库连接池 -->
+    <bean id="dataSource1" class="com.alibaba.druid.pool.DruidDataSource"
+          destroy-method="close">
+        <property name="driverClassName" value="${db01.jdbc.driver}"/>
+        <property name="url" value="${db01.jdbc.url}"/>
+        <property name="username" value="${db01.jdbc.username}"/>
+        <property name="password" value="${db01.jdbc.password}"/>
+        <property name="maxActive" value="10"/>
+    </bean>
+    <!-- 数据库连接池 -->
+    <bean id="dataSource2" class="com.alibaba.druid.pool.DruidDataSource"
+          destroy-method="close">
+        <property name="driverClassName" value="${db02.jdbc.driver}"/>
+        <property name="url" value="${db02.jdbc.url}"/>
+        <property name="username" value="${db02.jdbc.username}"/>
+        <property name="password" value="${db02.jdbc.password}"/>
+        <property name="maxActive" value="10"/>
+    </bean>
+    <bean id="dataSource3" class="com.alibaba.druid.pool.DruidDataSource"
+          destroy-method="close">
+        <property name="driverClassName" value="${db03.jdbc.driver}"/>
+        <property name="url" value="${db03.jdbc.url}"/>
+        <property name="username" value="${db03.jdbc.username}"/>
+        <property name="password" value="${db03.jdbc.password}"/>
+        <property name="maxActive" value="10"/>
+    </bean>
+    <bean id="dataSource4" class="com.alibaba.druid.pool.DruidDataSource"
+          destroy-method="close">
+        <property name="driverClassName" value="${db04.jdbc.driver}"/>
+        <property name="url" value="${db04.jdbc.url}"/>
+        <property name="username" value="${db04.jdbc.username}"/>
+        <property name="password" value="${db04.jdbc.password}"/>
+        <property name="maxActive" value="10"/>
+    </bean>
+
+
+    <bean id="splitStrategy4DB" class="sharding.jdbc.spilt.algorithm.SplitStrategy4DB"/>
+    <bean id="splitStrategy4Table" class="sharding.jdbc.spilt.algorithm.SplitStrategy4Table"/>
+
+    <!--精确分片算法引用，用于=和IN。该类需实现 PreciseShardingAlgorithm 接口-->
+    <sharding:standard-strategy id="dbSplit" sharding-column="id"  precise-algorithm-ref="splitStrategy4DB"/>
+    <sharding:standard-strategy id="tableSplit" sharding-column="id" precise-algorithm-ref="splitStrategy4Table"/>
+    <!--还有很多分片算法-->
+    <!--
+    <sharding:complex-strategy />
+    <sharding:inline-strategy />
+    <sharding:hint-database-strategy />
+    <sharding:none-strategy />
+    -->
+    <!--自增列值生成器类型，可自定义或选择内置类型：SNOWFLAKE/UUID/LEAF_SEGMENT-->
+    <!--注意：使用SNOWFLAKE算法，需要配置worker.id与max.tolerate.time.difference.milliseconds属性-->
+    <sharding:key-generator id="orderKeyGenerator" type="SNOWFLAKE" column="id"/>
+    <sharding:key-generator id="itemKeyGenerator" type="SNOWFLAKE" column="id"/>
+
+
+    <sharding:data-source id="shardingDataSource">
+        <!--数据分片配置规则-->
+        <sharding:sharding-rule data-source-names="dataSource1,dataSource2,dataSource3,dataSource4"><!--数据源Bean列表，多个Bean以逗号分隔-->
+            <!--表分片规则配置对象-->
+            <sharding:table-rules>
+                <!--表分片规则配置对象-->
+                <!--
+                actual-data-nodes  由数据源名 + 表名组成，以小数点分隔。多个表以逗号分隔，支持inline表达式。缺省表示使用已知数据源与逻辑表名称生成数据节点。用于广播表（即每个库中都需要一个同样的表用于关联查询，多为字典表）或只分库不分表且所有库的表结构完全一致的情况
+                database-strategy-ref 数据库分片策略，对应<sharding:xxx-strategy>中的策略Id，缺省表示使用<sharding:sharding-rule />配置的默认数据库分片策略
+                table-strategy-ref 表分片策略，对应<sharding:xxx-strategy>中的策略Id，缺省表示使用<sharding:sharding-rule />配置的默认表分片策略
+                key-generator-ref 自增列值生成器引用，缺省表示使用默认自增列值生成器               -->
+                <sharding:table-rule logic-table="shop_order" actual-data-nodes="ds$->{1..4}.shop_order_$->{1..8}"
+                                     database-strategy-ref="dbSplit"
+                                     table-strategy-ref="tableSplit" key-generator-ref="orderKeyGenerator"/>
+
+                <sharding:table-rule logic-table="shop_order_product" actual-data-nodes="ds$->{1..4}.shop_order_product_$->{1..8}"
+                                     database-strategy-ref="dbSplit"
+                                     table-strategy-ref="tableSplit" key-generator-ref="itemKeyGenerator"/>
+            </sharding:table-rules>
+            <!--绑定表规则列表-->
+            <sharding:binding-table-rules>
+                <sharding:binding-table-rule logic-tables="shop_order,shop_order_product"/><!--绑定规则的逻辑表名，多表以逗号分隔-->
+            </sharding:binding-table-rules>
+            <!--广播表规则列表-->
+            <sharding:broadcast-table-rules>
+                <sharding:broadcast-table-rule table="t_config"/><!--广播规则的表名-->
+            </sharding:broadcast-table-rules>
+        </sharding:sharding-rule>
+    </sharding:data-source>
+
+
+    <!-- 配置SqlSessionFactory -->
+    <bean id="sqlSessionFactory1" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 数据库连接池 -->
+        <property name="dataSource" ref="shardingDataSource"/>
+        <!-- 加载mybatis的全局配置文件 -->
+        <property name="configLocation" value="classpath:mybatis/sqlMapConfig.xml"/>
+    </bean>
+
+    <!-- 配置Mapper扫描
+        通过配置不用的数据源，连接不同的数据库，在扫描mapper文件的时候，使用不同的sqlSessionFactoryBean
+        注意扫描的包名的变化
+    -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory1"/>
+        <!-- 配置Mapper扫描包 -->
+        <property name="basePackage" value="sharding.jdbc.spilt.dao"/>
+    </bean>
+
+
+</beans>

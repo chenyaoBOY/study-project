@@ -1,0 +1,40 @@
+worker_processes  1;
+error_log  logs/error.log  error;
+events {
+    worker_connections  1024;
+}
+http {
+    server{
+        listen 80;
+        charset "utf-8";
+        location /{
+            content_by_lua_block{
+                local cjson = require('cjson')
+                local res = ngx.location.capture("/request?a=1&b=2")
+                ngx.say(res.status)
+                ngx.say(cjson.encode(res.header))
+                ngx.say(cjson.encode(res.body))
+                ngx.say(res.truncated)
+            }
+        }
+        location /request {
+            content_by_lua_block{
+                local requstMethod = ngx.req.get_method()
+                ngx.say('请求方法类型：'..requstMethod)
+                local requsetData
+                if requstMethod == nil then
+                    ngx.say("获取请求方法失败！")
+                elseif requstMethod == 'POST' then
+                    ngx.req.read_body()
+                    requsetData = ngx.req.get_post_args()
+                elseif requstMethod == 'GET' then
+                    requsetData = ngx.req.get_uri_args()
+                end
+                --输出请求参数
+                for k, v in pairs(requsetData) do
+                      ngx.say("key = "..k..' value = '..v)
+                end
+            }
+        }
+    }
+}

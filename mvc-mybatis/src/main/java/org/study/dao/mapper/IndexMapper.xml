@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.study.dao.mapper.IndexMapper">
+    <update id="updateId">
+        update gshop_allocate_out_order set out_order_amount=out_order_amount+1 where id =8
+    </update>
+<!--    <update id="updateId">-->
+<!--        update num set num=num+1 where id =1-->
+<!--    </update>-->
+
+    <select id="getCount" resultType="int">
+        select count(1) from db
+    </select>
+<!--    <select id="getId" resultType="java.lang.Integer">-->
+<!--        select num from num where id = #{id};-->
+<!--    </select>-->
+    <select id="getId" resultType="java.lang.Integer">
+        select out_order_amount from gshop_allocate_out_order where id = #{id};
+    </select>
+
+</mapper>

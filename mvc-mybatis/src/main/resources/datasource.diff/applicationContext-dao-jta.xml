@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+    <!-- 加载配置文件 -->
+    <context:property-placeholder location="classpath:datasource.diff/db.properties"/>
+
+    <!-- 数据库连接池 -->
+    <bean id="baseDataSource" class="com.atomikos.jdbc.AtomikosDataSourceBean" init-method="init" destroy-method="close" abstract="true">
+        <property name="xaDataSourceClassName" value="com.mysql.jdbc.jdbc2.optional.MysqlXADataSource"/>
+        <property name="poolSize" value="20" />
+        <property name="minPoolSize" value="10"/>
+        <property name="maxPoolSize" value="300"/>
+        <property name="testQuery" value="select 1 from dual"/>
+        <property name="maxLifetime" value="25" />
+        <property name="maxIdleTime" value="20"/>
+        <property name="loginTimeout" value="300" />
+        <property name="maintenanceInterval" value="14" />
+    </bean>
+
+    <bean id="dataSource1" parent="baseDataSource">
+        <property name="uniqueResourceName" value="db01" />
+        <property name="xaProperties">
+            <props>
+                <prop key="user">${data.jdbc.username}</prop>
+                <prop key="password">${data.jdbc.password}</prop>
+                <prop key="URL">${data.jdbc.url}</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!-- 配置SqlSessionFactory -->
+    <bean id="sqlSessionFactory1" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 数据库连接池 -->
+        <property name="dataSource" ref="dataSource1"/>
+        <!-- 加载mybatis的全局配置文件 -->
+        <property name="configLocation" value="classpath:mybatis/sqlMapConfig.xml"/>
+    </bean>
+
+    <!-- 配置Mapper扫描
+        通过配置不用的数据源，连接不同的数据库，在扫描mapper文件的时候，使用不同的sqlSessionFactoryBean
+        注意扫描的包名的变化
+    -->
+    <bean id="scanner1" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory1"/>
+        <!-- 配置Mapper扫描包 -->
+        <property name="basePackage" value="datasource.diff.compare.db.one"/>
+    </bean>
+    <bean id="dataSource2" parent="baseDataSource">
+        <property name="uniqueResourceName" value="db02" />
+        <property name="xaProperties">
+            <props>
+                <prop key="user">${read.jdbc.username}</prop>
+                <prop key="password">${read.jdbc.password}</prop>
+                <prop key="URL">${read.jdbc.url}</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!-- 配置SqlSessionFactory -->
+    <bean id="sqlSessionFactory2" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 数据库连接池 -->
+        <property name="dataSource" ref="dataSource2"/>
+        <!-- 加载mybatis的全局配置文件 -->
+        <property name="configLocation" value="classpath:mybatis/sqlMapConfig.xml"/>
+    </bean>
+
+    <!-- 配置Mapper扫描
+        通过配置不用的数据源，连接不同的数据库，在扫描mapper文件的时候，使用不同的sqlSessionFactoryBean
+        注意扫描的包名的变化
+    -->
+    <bean id="scanner2" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory2"/>
+        <!-- 配置Mapper扫描包 -->
+        <property name="basePackage" value="datasource.diff.compare.db.two"/>
+    </bean>
+
+</beans>

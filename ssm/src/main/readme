@@ -1,0 +1,23 @@
+
+
+SSM框架
+
+    多数据源的配置
+        |-- 动态配置
+             <bean id="dataSource" class="org.cyao.ssm.dao.bean.DynamicDataSource">
+                <property name ="targetDataSources">
+                    <map key-type ="java.lang.String">
+                        <entry value-ref ="db1" key= "db1" />
+                        <entry value-ref ="db2" key= "db2" />
+                        <entry value-ref ="db3" key="db3" />
+                    </map >
+                </property >
+                <property name ="defaultTargetDataSource" ref= "db1" />
+            </bean>
+
+            DynamicDataSource extends AbstractRoutingDataSource
+            |-- 实现determineCurrentLookupKey方法 返回 对应的key值
+            |-- 在调用的时候 设置key 决定使用哪一个数据库
+
+        |-- 静态配置
+            直接使用多个数据源，sqlSessionFactory使用指定数据源，扫描指定的mapper包

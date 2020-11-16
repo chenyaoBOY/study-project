@@ -1,0 +1,47 @@
+worker_processes  1;
+error_log  logs/error.log  debug;
+events {
+    worker_connections  1024;
+}
+
+http {
+    upstream user {
+        server localhost:18080;
+    }
+    upstream hair {
+        server localhost:18081;
+    }
+    server{
+        listen 80;
+        charset 'UTF-8';
+        location / {
+
+        }
+        location /user/hair {
+            content_by_lua_block{
+                local cjson = require('cjson')
+                ngx.say("请求植发和个人信息")
+                local res,res2 = ngx.location.capture_multi{
+                    {'/user/tomcat/userInfo'},
+                    {'/hair/jetty/hairInfo'}
+                }
+                local data ={}
+                if(res.status == 200) then
+                    data['userinfo'] = res.body
+                end
+                if(res2.status == 200) then
+                    data['hairInfo'] = res2.body
+                end
+                ngx.say(cjson.encode(data))
+            }
+        }
+        location /user {
+            rewrite ^/user(.*)$ $1 break;
+            proxy_pass http://user;
+        }
+        location /hair {
+            rewrite ^/hair(.*)$ $1 break;
+            proxy_pass http://hair;
+        }
+    }
+}

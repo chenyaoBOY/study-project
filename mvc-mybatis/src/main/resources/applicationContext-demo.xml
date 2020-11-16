@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+    <!--用于测试ApplicationContext-->
+
+    <!--    <bean id="demo" class="spring.validate.SpringCodeLearnAccessodeLearnAccess"></bean>-->
+
+    <!--spring构造器循环依赖报错 BeanCurrentlyInCreationException-->
+    <!--    <bean id="a" class="CircleA">-->
+    <!--        <constructor-arg ref="b"></constructor-arg>-->
+    <!--    </bean>-->
+    <!--    <bean id="b" class="CircleB">-->
+    <!--        <constructor-arg ref="c"></constructor-arg>-->
+    <!--    </bean>-->
+    <!--    <bean id="c" class="CircleC">-->
+    <!--        <constructor-arg ref="a"></constructor-arg>-->
+    <!--    </bean>-->
+    <!--spring setter注入方式循环依赖 不会发生错误-->
+    <!--    <bean id="a1" class="spring.validate.circlesetter.CircleA">-->
+    <!--        <property name="circleB" ref="b1"></property>-->
+    <!--    </bean>-->
+    <!--    <bean id="b1" class="spring.validate.circlesetter.CircleB">-->
+    <!--        <property name="circleC" ref="c1"></property>-->
+    <!--    </bean>-->
+    <!--    <bean id="c1" class="spring.validate.circlesetter.CircleC">-->
+    <!--        <property name="circleA" ref="a1"></property>-->
+    <!--    </bean>-->
+    <!--spring循环依赖报错 BeanCurrentlyInCreationException-->
+
+
+    <!--测试注入Date-->
+    <!--Cannot convert value of type [java.lang.String] to required type [java.util.Date]-->
+    <bean id="dateDIException" class="spring.validate.property.analyze.DateDIException">
+        <property name="date" value="2019-08-06 09:10:0"></property>
+    </bean>
+    <bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+        <property name="propertyEditorRegistrars">
+            <list>
+                <bean class="spring.validate.property.analyze.DatePropertyRegistor">
+                    <property name="format" value="yyyy-MM-dd"></property>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="myBean" class="spring.validate.extend.MyBean"></bean>
+</beans>

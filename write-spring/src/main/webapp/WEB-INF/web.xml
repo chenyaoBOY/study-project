@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         id="WebApp_ID" version="2.5">
+
+    <servlet>
+        <servlet-name>stormDispatcherServlet</servlet-name>
+        <servlet-class>org.study.project.core.StormDispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfig</param-name>
+            <param-value>contextConfig.properties</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>stormDispatcherServlet</servlet-name>
+        <url-pattern>*.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>thread-servlet</servlet-name>
+        <servlet-class>org.study.project.servlet.ServletThread</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>thread-servlet</servlet-name>
+        <url-pattern>/thread</url-pattern>
+    </servlet-mapping>
+
+</web-app>

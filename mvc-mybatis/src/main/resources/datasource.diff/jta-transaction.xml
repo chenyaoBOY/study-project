@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+
+    <bean id="userTransactionService" class="com.atomikos.icatch.config.UserTransactionServiceImp"
+          init-method="init" destroy-method="shutdownForce">
+        <constructor-arg>
+            <!-- IMPORTANT: specify all Atomikos properties here -->
+            <props>
+                <prop key="com.atomikos.icatch.service">
+                    com.atomikos.icatch.standalone.UserTransactionServiceFactory
+                </prop>
+                <prop key="com.atomikos.icatch.tm_unique_name">com.atomikos.spring.jdbc.transaction</prop>
+                <prop key="com.atomikos.icatch.log_base_dir">/var/mylogs/atomikos</prop>
+                <prop key="com.atomikos.icatch.log_base_name">transaction.log</prop>
+                <prop key="com.atomikos.icatch.output_dir">/var/mylogs/atomikos</prop>
+                <prop key="com.atomikos.icatch.console_file_name">transaction.out</prop>
+            </props>
+        </constructor-arg>
+    </bean>
+
+    <bean id="atomikosTransactionManager" class="com.atomikos.icatch.jta.UserTransactionManager"
+          init-method="init" destroy-method="close" depends-on="userTransactionService">
+        <!-- when close is called, should we force transactions to terminate or not? -->
+        <property name="forceShutdown" value="false" />
+    </bean>
+
+    <!-- Also use Atomikos UserTransactionImp, needed to configure Spring -->
+    <bean id="atomikosUserTransaction" class="com.atomikos.icatch.jta.UserTransactionImp" depends-on="userTransactionService">
+        <property name="transactionTimeout" value="300" />
+    </bean>
+
+    <!-- Configure the Spring framework to use JTA transactions from Atomikos -->
+    <bean id="txManager" class="org.springframework.transaction.jta.JtaTransactionManager">
+        <property name="transactionManager" ref="atomikosTransactionManager" />
+        <property name="userTransaction" ref="atomikosUserTransaction" />
+        <property name="defaultTimeout" value="16" />
+    </bean>
+
+    <tx:advice id="txAdvice" transaction-manager="txManager">
+        <tx:attributes>
+            <tx:method name="get*" propagation="NOT_SUPPORTED" read-only="true" rollback-for="Exception" />
+            <tx:method name="query*" propagation="NOT_SUPPORTED" read-only="true" rollback-for="Exception" />
+            <tx:method name="count*" propagation="NOT_SUPPORTED" read-only="true" rollback-for="Exception" />
+            <tx:method name="find*" propagation="NOT_SUPPORTED" read-only="true" rollback-for="Exception" />
+            <tx:method name="select*" propagation="NOT_SUPPORTED" read-only="true" rollback-for="Exception" />
+            <tx:method name="list*" propagation="NOT_SUPPORTED" read-only="true" rollback-for="Exception" />
+            <tx:method name="export*" propagation="NOT_SUPPORTED" read-only="true" rollback-for="Exception" />
+            <tx:method name="*" propagation="REQUIRED" rollback-for="Exception" />
+        </tx:attributes>
+    </tx:advice>
+    <aop:config>
+        <aop:pointcut id="pointCuts" expression="execution(* datasource.diff.compare.service.xa.*..*(..)) )" />
+                      <!--expression="execution(* com.sfbest.order.inself.service.*..*(..)) and !execution(* com.sfbest.order.inself.service.impl.StockVoucherIoServiceImpl.*(..))" />-->
+        <aop:advisor order="2" advice-ref="txAdvice" pointcut-ref="pointCuts" />
+    </aop:config>
+</beans>

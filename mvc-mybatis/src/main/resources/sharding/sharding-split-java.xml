@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <!-- 配置SqlSessionFactory -->
+    <bean id="sqlSessionFactory4Sharding" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 数据库连接池 -->
+<!--        <property name="dataSource" ref="readWriteSplitDataSource"></property>&lt;!&ndash;读写分离&ndash;&gt;-->
+        <property name="dataSource" ref="shardingDataSource"></property><!--分库分表-->
+        <!-- 加载mybatis的全局配置文件 -->
+        <property name="configLocation" value="classpath:mybatis/sqlMapConfig.xml"/>
+    </bean>
+
+    <!-- 配置Mapper扫描
+        通过配置不用的数据源，连接不同的数据库，在扫描mapper文件的时候，使用不同的sqlSessionFactoryBean
+        注意扫描的包名的变化
+    -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory4Sharding"/>
+        <!-- 配置Mapper扫描包 -->
+        <property name="basePackage" value="sharding.jdbc.spilt.dao"/>
+    </bean>
+
+
+</beans>

@@ -1,0 +1,63 @@
+worker_processes  4;
+worker_rlimit_nofile 65535;
+#error_log logs/error.log info;
+error_log /var/log/nginx/error.log error;
+
+
+events {
+    use epoll;
+    worker_connections 65535;
+}
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    client_max_body_size 10m;
+    lua_shared_dict ngx_shared_order 2m;
+    keepalive_timeout  65;
+    server_tokens off;
+    upstream old_order {
+
+        server old.order.sfbest.com:8080  weight=10 max_fails=2 fail_timeout=30s;
+
+        #server 10.103.16.15:8080  weight=10 max_fails=2 fail_timeout=30s;
+
+    }
+
+    upstream new_order {
+
+        server new.order.sfbest.com:8080  weight=10 max_fails=1 fail_timeout=30s;
+
+    }
+    server {
+        listen 8080;
+        server_name old.order.sfbest.com;
+        location /OrderCenterService/services/ {
+            #  echo "key:$1"
+            # content_by_lua 'ngx.say("hello world qunge")';
+            content_by_lua_file  /home/openresty/script/order_switch.lua;
+            expires                 -1s;
+        }
+
+
+        location /new {
+            log_subrequest on;
+            keepalive_timeout 5s;
+            proxy_connect_timeout 3s;
+            proxy_read_timeout 3s;
+            proxy_send_timeout 3s;
+            rewrite ^/new(.*)$ $1 break;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_pass http://new_order;
+        }
+        location  /old {
+            rewrite ^/old(.*)$ $1 break;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_pass http://old_order;
+        }
+    }
+}
+
