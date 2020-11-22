@@ -54,6 +54,15 @@ public class NioClient implements NioTaskInterface{
     }
     @Override
     public boolean processNIOTask(SelectionKey key, String msg) throws IOException {
+        if(key.isAcceptable()){
+            System.out.println("isAcceptable");
+        }
+        if(key.isConnectable()){
+            System.out.println("isConnectable");
+        }
+        if(key.isValid()){
+            System.out.println("isValid");
+        }
         if (key.isReadable()) {//读取服务器消息内容
             SocketChannel server = (SocketChannel) key.channel();
             NioUtil.printRemoteMsg(server, NioUtil.readSocketChannelMsg(server));
@@ -64,15 +73,6 @@ public class NioClient implements NioTaskInterface{
             SocketChannel client = (SocketChannel) key.channel();
             NioUtil.writeMsg2Remote(client, msg);
             client.register(selector, SelectionKey.OP_READ);
-        }
-        if(key.isAcceptable()){
-            System.out.println("isAcceptable");
-        }
-        if(key.isConnectable()){
-            System.out.println("isConnectable");
-        }
-        if(key.isValid()){
-            System.out.println("isValid");
         }
         return true;
     }

@@ -27,9 +27,8 @@ public class NioUtil {
 
     public static void printRemoteMsg(SocketChannel channel, String serverMsg) throws IOException {
         String remoteAddress = channel.getRemoteAddress().toString();
-        String localAddress = channel.getLocalAddress().toString();
         SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
-        System.out.println(sf.format(new Date())+":remoteAddress:" + remoteAddress + " localAddress" + localAddress + " 收到消息：" + serverMsg);
+        System.out.println(sf.format(new Date())+":remoteAddress:" + remoteAddress +" 收到消息：" + serverMsg);
     }
 
     public static void writeMsg2Remote(SocketChannel channel, String msg) throws IOException {
@@ -38,6 +37,6 @@ public class NioUtil {
         buffer.flip();
         channel.write(buffer);
         SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
-        System.out.println(sf.format(new Date())+" 发送消息："+msg);
+//        System.out.println(sf.format(new Date())+" 发送消息："+msg);
     }
 }
