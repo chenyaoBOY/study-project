@@ -1,4 +1,4 @@
-package com.study.jdk.seven;
+package com.study.jdk.version.seven;
 
 import org.junit.Test;
 

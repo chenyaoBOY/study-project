@@ -1,4 +1,4 @@
-package com.study.jdk.eight.interface_;
+package com.study.jdk.version.eight.interface_;
 
 /**
  * @author chenyao

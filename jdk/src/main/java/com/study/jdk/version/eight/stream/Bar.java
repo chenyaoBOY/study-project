@@ -1,4 +1,4 @@
-package com.study.jdk.eight.stream;
+package com.study.jdk.version.eight.stream;
 
 /**
  * @author chenyao
