@@ -1,88 +1,67 @@
 package com.study.jdk.io.nio;
 
 
+import com.study.jdk.io.nio.handler.*;
+import com.study.jdk.io.nio.handler.impl.ConnectionEventHandler;
+import com.study.jdk.io.nio.handler.impl.ReadEventHandler;
+import com.study.jdk.io.nio.handler.impl.WriteEventHandler;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.*;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class NioServer {
+public class NioServer implements NioTaskInterface {
 
     private ServerSocketChannel server;
     private Selector selector;
-    private Map<SelectionKey,String> map = new HashMap<>();
+    /**
+     * 用于存储所有的客户端的socket连接
+     */
+    private final Map<SocketChannel, String> clientChannelMap = new ConcurrentHashMap<>();
+
+    {
+        System.out.println("服务器初始化");
+        try {
+            selector = Selector.open();
+            server = ServerSocketChannel.open();
+            server.configureBlocking(false);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) throws IOException {
-
         new NioServer(8080).doAccept();
     }
 
     public NioServer(int port) throws IOException {
-        server = ServerSocketChannel.open();
-        server.configureBlocking(false);
-
         server.socket().bind(new InetSocketAddress(port));
-        selector = Selector.open();
         server.register(selector, SelectionKey.OP_ACCEPT);
         System.out.println("-----------服务器已经启动--------------");
     }
 
     public void doAccept() throws IOException {
-        while(true){
-
-            System.out.println("-----------开始遍历selector--------------");
-            int select = selector.select();
-            if(select==0){continue;}
-
-            Set<SelectionKey> selectionKeys = selector.selectedKeys();
-            Iterator<SelectionKey> iterator = selectionKeys.iterator();
-            while(iterator.hasNext()){
-                SelectionKey selectionKey = iterator.next();
-                iterator.remove();
-                doTask(selectionKey);
-            }
-
+        while (true) {
+            doNioTask(selector, this, "服务器回复消息");
         }
 
     }
 
-    private void doTask(SelectionKey key) throws IOException {
-        if(key.isAcceptable()){
-            SocketChannel socketChannel = server.accept();
-            socketChannel.configureBlocking(false);
-            socketChannel.register(selector,SelectionKey.OP_READ);
-        }else if(key.isReadable()){
-            SocketChannel client = (SocketChannel) key.channel();
-            String name="";
-            while(true){
-                ByteBuffer buffer = ByteBuffer.allocate(1024);
-                int len = client.read(buffer);
-                if(len>0){
-                    name += new String(buffer.array(), 0, len);
-                }else{
-                    map.put(key,name);
-                    System.out.println("客户端数据msg="+name);
-                    client.register(selector,SelectionKey.OP_WRITE);
-                    break;
-                }
-
-            }
-        }else if(key.isWritable()){
-            if(!map.containsKey(key)){return;}
-            SocketChannel client = (SocketChannel) key.channel();
-            String name = map.get(key);
-            ByteBuffer buffer = ByteBuffer.allocate(1024);
-            buffer.put(("服务端反馈消息："+name).getBytes());
-            buffer.flip();
-
-            client.write(buffer);
-
-            client.register(selector,SelectionKey.OP_READ);
-
+    @Override
+    public boolean processNIOTask(SelectionKey key, String msg) throws IOException {
+        EventResource eventResource = new EventResource(server, selector, key, msg);
+        if (key.isAcceptable()) {
+            new ConnectionEventHandler().handlerEvent(eventResource);
         }
+        if (key.isReadable()) {//读取客户端发来的数据
+            new ReadEventHandler(clientChannelMap).handlerEvent(eventResource);
+        }
+        if (key.isWritable()) {
+            new WriteEventHandler(clientChannelMap).handlerEvent(eventResource);
+        }
+        return true;
     }
 }
