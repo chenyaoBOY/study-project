@@ -2,15 +2,15 @@ package com.study.jdk.enumlearn;
 
 public enum Season {
 
-    SPRING(1,"春天",Color.GREEN),
-    SUMMER(2,"夏天",Color.RED),
-    AUTUMN(3,"秋天",Color.BLUE),
-    WINTER(4,"冬天",Color.YELLOW);
+    SPRING(1,"春天", Color.GREEN),
+    SUMMER(2,"夏天", Color.RED),
+    AUTUMN(3,"秋天", Color.BLUE),
+    WINTER(4,"冬天", Color.YELLOW);
 
 
     private  int index;
     private  String name;
-    private  Color color;
+    private Color color;
 
     Season(int index, String name, Color color) {
         this.index = index;
