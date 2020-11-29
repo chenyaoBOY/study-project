@@ -1,5 +1,6 @@
 package com.study.jdk.cache.lru;
 
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -48,5 +49,6 @@ public class LRUCache<K,V> extends LinkedHashMap<K,V> {
         map.get("key5");
         map.put("key11","value5");
         map.put("key12","value5");
+        System.out.println(new Date());
     }
 }
