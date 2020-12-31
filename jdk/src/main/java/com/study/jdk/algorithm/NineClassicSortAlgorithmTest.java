@@ -3,6 +3,8 @@ package com.study.jdk.algorithm;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * @author chenyao
@@ -268,6 +270,11 @@ public class NineClassicSortAlgorithmTest {
             System.out.println("第" + cnt + "趟结束：" + Arrays.toString(arr));
         }
 
+    }
+
+    public static void main(String[] args) {
+        Queue queue = new LinkedList();
+        queue.poll();
     }
 
 }

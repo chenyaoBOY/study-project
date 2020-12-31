@@ -8,7 +8,7 @@ import java.util.Scanner;
 /**
  * @author chenyao
  * @date 2019/9/6 11:05
- * @description
+ * @description 输入 数字A 输入次方B  得出A的B次方的结果
  */
 public class Main {
     public static void main2(String[] args) {
@@ -17,6 +17,7 @@ public class Main {
         while (sc.hasNext()){
             list.add(sc.nextLine());
         }
+        
         for (String s : list) {
             String numStr = s.substring(0, 6);
             while (numStr.endsWith("0")){

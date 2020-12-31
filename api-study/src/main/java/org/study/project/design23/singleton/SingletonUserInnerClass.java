@@ -6,16 +6,20 @@ package org.study.project.design23.singleton;
  * @description
  */
 public class SingletonUserInnerClass {
+    public SingletonUserInnerClass() {
+        System.out.println("主类被加载");
+    }
 
-    public static Singleton getSingle(){
+    public static SingletonBean getSingle(){
+        System.out.println("主类静态方法被调用");
         return Singleton.singleton;
     }
 
 
      static class Singleton {
-        private Singleton(){
+         private static SingletonBean singleton = new SingletonBean();
+         private Singleton(){
             System.out.println("内部静态类初始化");
         }
-        private static Singleton singleton = new Singleton();
     }
 }
