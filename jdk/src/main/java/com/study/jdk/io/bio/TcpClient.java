@@ -24,22 +24,26 @@ public class TcpClient {
         //连接服务
         Socket client = new Socket("localhost", 8080);
 
-        OutputStream os = client.getOutputStream();
 
-        ObjectOutputStream oos = new ObjectOutputStream(os);
-        oos.writeUTF("getPerson");//方法名称
-        oos.writeUTF("TcpService");//接口名称
-        oos.writeObject(params);//接口参数
-        oos.writeObject(method.getParameterTypes());//参数类型
+        while (true){
+            Thread.sleep(2000);
 
+            OutputStream os = client.getOutputStream();
 
-        ObjectInputStream ois = new ObjectInputStream(client.getInputStream());
-        Object o = ois.readObject();
-        if(o instanceof Person){
-            Person p =(Person)o;
-            System.out.println("name="+p.name+"--age="+p.age);
+            ObjectOutputStream oos = new ObjectOutputStream(os);
+            oos.writeUTF("getPerson");//方法名称
+            oos.writeUTF("TcpService");//接口名称
+            oos.writeObject(params);//接口参数
+            oos.writeObject(method.getParameterTypes());//参数类型
+            oos.flush();
+
+            ObjectInputStream ois = new ObjectInputStream(client.getInputStream());
+            Object o = ois.readObject();
+            if(o instanceof Person){
+                Person p =(Person)o;
+                System.out.println("name="+p.name+"--age="+p.age);
+            }
         }
-
 
     }
 }
